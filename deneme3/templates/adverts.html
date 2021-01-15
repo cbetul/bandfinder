@@ -1,0 +1,13 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Adverts</h1>
+  <div class="col-lg-8 order-lg-2 mt-2">
+  <ul class="list-group">
+    {% for advert in adverts %}
+      <li class="list-group-item"><a href="advert/{{advert.id}}">{{advert.title}}</a> Location: {{advert.location}}</li>
+      <li class="list-group-item">Location: {{advert.location}}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

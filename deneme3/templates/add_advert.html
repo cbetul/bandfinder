@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <h1>Add New Advert</h1>
+  <div class="container">
+    <div class="row my-2">
+        <div class="col-lg-8 order-lg-2">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a href="/profile" data-target="#profile" data-toggle="tab" class="nav-link active">Profile</a>
+                </li>
+                <li class="nav-item">
+                  <a href="/add_advert" data-toggle="tab" class="nav-link">Add Advert</a>
+                  
+                </li>
+                <li class="nav-item">
+                  
+                    <a href="/edit_profile" data-toggle="tab" class="nav-link">Edit Profile</a>
+                </li>
+            </ul>
+  {% from "includes/_formhelpers.html" import render_field %}
+  <form method="POST" action="">
+    <div class="form-group">
+      {{ render_field(form.title, class_="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ render_field(form.location, class_="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ render_field(form.body, class_="form-control", id="editor") }}
+    </div>
+    <p><input class="btn btn-primary" type="submit" value="Submit"></p>
+  </form>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+<div class="card col-lg-8">
+  <div class="card-header">
+    <h1>{{advert.title}}</h1>
+    <h3>{{advert.location}}</h3>
+  </div>
+  <div class="card-body">
+    <blockquote class="blockquote mb-0">
+      <p>{{advert.body | safe}}</p>
+      <footer class="blockquote-footer">Written by {{advert.author}} on {{advert.create_date}}</cite></footer>
+    </blockquote>
+  </div>
+</div>
+ 
+  <h3>Add Comment</h3>
+  <a class="btn btn-success" href="/add_comment/{{advert.id}}"> Add comment</a>
+
+
+
+  <hr>
+  
+  <div class="col-lg-8 order-lg-2">
+    <h3>Comments</h3>
+    <ul class="list-group">
+      {% for comment in comments %}
+      <li class="list-group-item-warning"><h5 class="card-header">{{comment.author}}</h5> Date:  {{comment.create_date}}</li>
+        <li class="list-group-item">{{comment.body}}</li>
+      {% endfor %}
+    </ul>
+</div>
+{% endblock %}

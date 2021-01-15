@@ -1,0 +1,89 @@
+{% extends 'layout.html' %}
+{% block body %}
+  <h1>Profile <small> Welcome {{session.username}}</small></h1>
+  <div class="container">
+    <div class="row my-2">
+        <div class="col-lg-8 order-lg-2">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a href="" data-target="#profile" data-toggle="tab" class="nav-link active">Profile</a>
+                </li>
+                <li class="nav-item">
+                  <a href="/add_advert" data-toggle="tab" class="nav-link">Add Advert</a>
+                  
+                </li>
+                <li class="nav-item">
+                    <a href="/edit_profile" data-toggle="tab" class="nav-link">Edit Profile</a>
+                </li>
+            </ul>
+            <div class="tab-content py-4">
+                <div class="tab-pane active" id="profile">
+                    <div class="row">
+                        <div class="col-md-6">
+                          {% for bio in biography %}
+                            <dt>Location:</dt>
+                            <p>
+                              {{bio.location}}
+                            </p>
+                                                      
+                            <dt>Instrument:</dt>
+                            <p>
+                              Instrument: {{bio.instrument}}   Level: {{bio.exp_level}}
+                            </p>
+                            <dt>About:</dt>
+                            <li>
+                              {{bio.body}}
+                            </li>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+      
+                </div>
+
+
+            </div>
+        </div>
+        <div class="col-lg-4 order-lg-1 text-center">
+            <img src="http://placehold.jp/3d4070/ffffff/150x150.png?css=%7B%22border-radius%22%3A%2215px%22%7D" class="mx-auto img-fluid img-circle d-block" alt="avatar">
+            <h6 class="mt-2">Upload a different photo</h6>
+            <label class="custom-file">
+                <input type="file" id="file" class="custom-file-input">
+                <span class="custom-file-control">Choose file</span>
+                <input type = "submit"/>
+            </label>
+        </div>
+    </div>
+</div>
+
+  <hr>
+  <dt class="mb-2 "> Recent Posts</dt>
+  <table class="table table-striped mt-2">
+    <tr>
+      <th>ID</th>
+      <th>Title</th>
+      <th>Location</th>
+      <th>Author</th>
+      <th>Date</th>
+      <th></th>
+      <th></th>
+    </tr>
+    {% for advert in adverts %}
+      <tr>
+        <td>{{advert.id}}</td>
+        <td>{{advert.title}}</td>
+        <td>{{advert.location}}</td>
+        <td>{{advert.author}}</td>
+        <td>{{advert.create_date}}</td>
+        <td><a href="edit_advert/{{advert.id}}" class="btn btn-default pull-right">Edit</a></td>
+        <td>
+          <form action="{{url_for('delete_advert', id=advert.id)}}" method="post">
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="submit" value="Delete" class="btn btn-danger">
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+
+{% endblock %}
