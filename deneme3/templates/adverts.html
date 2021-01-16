@@ -2,12 +2,34 @@
 
 {% block body %}
   <h1>Adverts</h1>
-  <div class="col-lg-8 order-lg-2 mt-2">
-  <ul class="list-group">
-    {% for advert in adverts %}
-      <li class="list-group-item"><a href="advert/{{advert.id}}">{{advert.title}}</a> Location: {{advert.location}}</li>
-      <li class="list-group-item">Location: {{advert.location}}</li>
-    {% endfor %}
-  </ul>
+  <div class="col-md-9 text-right">
+    <a class="btn btn-danger" href="/add_advert">Place an Ad</a>
+  </div>
+  <hr>
+  <div class="container">
+    <hr>
+  {% for advert in adverts %}
+  <div class="card col-lg-12 ">
+    <ul class="list-group">
+      <div class="card-block  ">
+        <div class="card-header">
+          <h3 class="card-title font-weight-bold text-danger">{{advert.title}} </h3>
+          <h5 class="card-subtitle mb-2 text-muted">Written by {{advert.author}} | {{advert.create_date}} </h5>
+        </div>
+        <div class="card-body">
+          <h5 class="card-subtitle mb-2 text-muted">Location: {{advert.location}}</h5>
+          <p class="card-text ">{{advert.body| safe}}</p>
+          <div class="card-footer text-muted mb-2 mt-2">
+           <a href="advert/{{advert.id}}" class="btn btn-warning">Read More</a> 
+          </div>
+          
+        </div>
+        <hr>
+    </ul>
 </div>
+ {% endfor %}
+</div>
+
+
+
 {% endblock %}

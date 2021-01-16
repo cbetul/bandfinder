@@ -1,10 +1,9 @@
 from flask import Flask, render_template, flash, redirect, url_for, session, request, logging
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, SelectField, PasswordField, validators
+from flask_login import login_user, logout_user, current_user, login_required
 from passlib.hash import sha256_crypt
 from functools import wraps
-
-
 
 
 app = Flask(__name__)
@@ -19,25 +18,17 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
 
-# Index
 @app.route('/')
 def index():
     return render_template('home.html')
 
-
-# About
 @app.route('/about')
 def about():
     return render_template('about.html')
 
-
-# Articles
 @app.route('/adverts')
 def adverts():
-    # Create cursor
     cur = mysql.connection.cursor()
-
-    # Get articles
     result = cur.execute("SELECT * FROM advert")
     adverts = cur.fetchall()
 
@@ -45,19 +36,66 @@ def adverts():
         return render_template('adverts.html', adverts=adverts)
 
     else:
-        msg = 'No Articles Found'
+        msg = 'No Advert Found'
         return render_template('adverts.html', msg=msg)
-    # Close connection
     cur.close()
 
 
-#Single Article
-@app.route('/advert/<string:id>/')
-def advert(id):
-    # Create cursor
+@app.route('/user/<string:username>/')
+def get_user(username):
+  
     cur = mysql.connection.cursor()
 
-    # Get article
+    result = cur.execute("SELECT * FROM users WHERE username = %s", [username])
+    user = cur.fetchone()
+    result3 = cur.execute("SELECT * FROM advert WHERE author = %s", [username])
+    adverts = cur.fetchall()
+
+    result3 = cur.execute("SELECT * FROM biography WHERE username = %s", [username])
+    biography = cur.fetchall()
+
+    return render_template('user.html', user=user, adverts=adverts,biography=biography )
+    cur.close()
+
+@app.route('/bands')
+def bands():
+    
+    cur = mysql.connection.cursor()
+
+    result = cur.execute("SELECT * FROM users WHERE usertype = %s", ['Band'])
+    bands = cur.fetchall()
+
+    if result > 0:
+        return render_template('bands.html', bands=bands)
+
+    else:
+        msg = 'No Bands Found'
+        return render_template('bands.html', msg=msg)
+   
+    cur.close()
+
+@app.route('/musicians')
+def musicians():
+    
+    cur = mysql.connection.cursor()
+
+    result = cur.execute("SELECT * FROM users WHERE usertype = %s", ['Musician'])
+    musicians = cur.fetchall()
+
+    if result > 0:
+        return render_template('musicians.html', musicians=musicians)
+
+    else:
+        msg = 'No Musician Found'
+        return render_template('musicians.html', msg=msg)
+   
+    cur.close()
+
+@app.route('/advert/<string:id>/')
+def advert(id):
+    
+    cur = mysql.connection.cursor()
+
     result = cur.execute("SELECT * FROM advert WHERE id = %s", [id])
     advert = cur.fetchone()
     result2 = cur.execute("SELECT * FROM comments WHERE advert_id = %s", [id])
@@ -66,11 +104,9 @@ def advert(id):
     if result2 > 0:
         return render_template('advert.html', advert=advert, comments=comments)
         
-
     return render_template('advert.html', advert=advert)
 
 
-# Register Form Class
 class RegisterForm(Form):
     name = StringField('Name', [validators.DataRequired(),validators.Length(min=1, max=50)])
     username = StringField('Username', [validators.DataRequired(),validators.Length(min=2, max=25)])
@@ -83,7 +119,6 @@ class RegisterForm(Form):
     confirm = PasswordField('Confirm Password')
 
 
-# User Register
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm(request.form)
@@ -95,24 +130,28 @@ def register():
         password = sha256_crypt.encrypt(str(form.password.data))
 
         cur = mysql.connection.cursor()
+        exists= cur.execute("SELECT * FROM users WHERE username = %s", [username])
+        if exists> 0:
+            error = 'Username is already exists!'
+            return render_template('register.html', error=error,form=form)
+            
+        else:
+            cur.execute("INSERT INTO users(name, email, username,usertype, password) VALUES(%s, %s, %s, %s, %s)", (name, email, username,usertype, password))
 
-        cur.execute("INSERT INTO users(name, email, username,usertype, password) VALUES(%s, %s, %s, %s, %s)", (name, email, username,usertype, password))
+            mysql.connection.commit()
 
-        mysql.connection.commit()
+            cur.close()
 
-        cur.close()
-
-        flash('You are successfully registered.', 'success')
+            flash('You are successfully registered.', 'success')
 
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
 
-# User login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Get Form Fields
+     
         username = request.form['username']
         password_candidate = request.form['password']
 
@@ -121,13 +160,11 @@ def login():
         result = cur.execute("SELECT * FROM users WHERE username = %s", [username])
 
         if result > 0:
-            # Get stored hash
+       
             data = cur.fetchone()
             password = data['password']
 
-            # Compare Passwords
             if sha256_crypt.verify(password_candidate, password):
-                # Passed
                 session['logged_in'] = True
                 session['username'] = username
 
@@ -136,7 +173,7 @@ def login():
             else:
                 error = 'Please try again.'
                 return render_template('login.html', error=error)
-            # Close connection
+         
             cur.close()
         else:
             error = 'Username not found'
@@ -144,7 +181,7 @@ def login():
 
     return render_template('login.html')
 
-# Check if user logged in
+
 def is_logged_in(f):
     @wraps(f)
     def wrap(*args, **kwargs):
@@ -155,7 +192,7 @@ def is_logged_in(f):
             return redirect(url_for('login'))
     return wrap
 
-# Logout
+
 @app.route('/logout')
 @is_logged_in
 def logout():
@@ -163,33 +200,25 @@ def logout():
     flash('Logged out', 'success')
     return redirect(url_for('login'))
 
-# Profile
+
 @app.route('/profile')
 @is_logged_in
 def profile():
-    # Create cursor
     cur = mysql.connection.cursor()
 
-    # Get articles
-    #result = cur.execute("SELECT * FROM advert")
-    # Show articles only from the user logged in 
     result = cur.execute("SELECT * FROM advert WHERE author = %s", [session['username']])
 
     adverts = cur.fetchall()
 
     result2 = cur.execute("SELECT * FROM biography WHERE username = %s", [session['username']])
     biography = cur.fetchall()
-    
-
     if result > 0:
         return render_template('profile.html', adverts=adverts, biography=biography)
     else:
-        msg = 'No Adverts Found'
-        return render_template('profile.html', msg=msg)
-    # Close connection
+        return render_template('profile.html', biography=biography)
+  
     cur.close()
 
-# Article Form Class
 class AdvertForm(Form):
     title = StringField('Title', [validators.DataRequired(),validators.Length(min=1, max=200)])
     location = StringField('Location', [validators.DataRequired(),validators.Length(min=1, max=200)])
@@ -197,9 +226,9 @@ class AdvertForm(Form):
 
 class CommentForm(Form):
     body = TextAreaField('Body', [validators.DataRequired(),validators.Length(min=5)])
+    location = StringField('Location', [validators.DataRequired(),validators.Length(min=1, max=100)])
 
-# Add Article
-@app.route('/add_advert', methods=['GET', 'POST'])
+@app.route('/add_advert/', methods=['GET', 'POST'])
 @is_logged_in
 def add_advert():
     form = AdvertForm(request.form)
@@ -209,8 +238,10 @@ def add_advert():
         body = form.body.data
 
         cur = mysql.connection.cursor()
-
-        cur.execute("INSERT INTO advert(title, location, body, author) VALUES(%s, %s, %s, %s)",(title, location, body, session['username']))
+        result = cur.execute("SELECT id FROM users WHERE username = %s", [session['username']])
+        user = cur.fetchone()
+        user_id = user['id']
+        cur.execute("INSERT INTO advert(title, location, body, author, user_id) VALUES(%s, %s, %s, %s, %s)",(title, location, body, session['username'],user_id))
 
         mysql.connection.commit()
 
@@ -223,22 +254,19 @@ def add_advert():
     return render_template('add_advert.html', form=form)
 
 
-# Edit Article
 @app.route('/edit_advert/<string:id>', methods=['GET', 'POST'])
 @is_logged_in
 def edit_advert(id):
-    # Create cursor
+   
     cur = mysql.connection.cursor()
 
-    # Get article by id
     result = cur.execute("SELECT * FROM advert WHERE id = %s", [id])
 
     advert = cur.fetchone()
     cur.close()
-    # Get form
+   
     form = AdvertForm(request.form)
 
-    # Populate article form fields
     form.title.data = advert['title']
     form.location.data = advert['location']
     form.body.data = advert['body']
@@ -248,15 +276,13 @@ def edit_advert(id):
         location = request.form['location']
         body = request.form['body']
 
-        # Create Cursor
         cur = mysql.connection.cursor()
         app.logger.info(title)
-        # Execute
+        
         cur.execute ("UPDATE advert SET title=%s, location=%s, body=%s WHERE id=%s",(title, location, body, id))
-        # Commit to DB
+        
         mysql.connection.commit()
 
-        #Close connection
         cur.close()
 
         flash('Advert Updated', 'success')
@@ -274,10 +300,14 @@ def add_comment(id):
     if request.method == 'POST' and form.validate():
 
         body = form.body.data
-
+        location = form.location.data
         cur = mysql.connection.cursor()
+
+        result = cur.execute("SELECT id FROM users WHERE username = %s", [session['username']])
+        user = cur.fetchone()
+        user_id = user['id']
     
-        cur.execute("INSERT INTO comments(author, advert_id, body) VALUES(%s, %s, %s)",(session['username'], id, body))
+        cur.execute("INSERT INTO comments(author, advert_id, body, user_id,location) VALUES(%s, %s, %s, %s, %s)",(session['username'], id, body, user_id, location))
   
         mysql.connection.commit()
 
@@ -307,6 +337,9 @@ def edit_profile():
 
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM biography WHERE username = %s", [session['username']])
+    result2 = cur.execute("SELECT id FROM users WHERE username = %s", [session['username']])
+    user = cur.fetchone()
+    user_id = user['id']
     cur.close()
     if result > 0:
         if request.method == 'POST' and form.validate():
@@ -315,16 +348,13 @@ def edit_profile():
             location = form.location.data
             body = form.body.data
             cur = mysql.connection.cursor()
-            cur.execute ("UPDATE biography SET instrument=%s, exp_level=%s, location=%s, body=%s WHERE username=%s",(instrument, exp_level, location, body, session['username']))
+            cur.execute ("UPDATE biography SET instrument=%s, exp_level=%s, location=%s, body=%s, user_id=%s WHERE username=%s",(instrument, exp_level, location, body,user_id, session['username']))
 
             mysql.connection.commit()
-
             cur.close()
-
             flash('Profile updated.', 'success')
 
             return redirect(url_for('profile'))
-
     else:
         if request.method == 'POST' and form.validate():
             instrument = form.instrument.data
@@ -333,7 +363,7 @@ def edit_profile():
             body = form.body.data
             cur = mysql.connection.cursor()
 
-            cur.execute("INSERT INTO biography(username, instrument, exp_level, location, body) VALUES(%s, %s, %s, %s, %s)",(session['username'],instrument,exp_level, location, body))
+            cur.execute("INSERT INTO biography(username, instrument, exp_level, location, body, user_id) VALUES(%s, %s, %s, %s, %s, %s)",(session['username'],instrument,exp_level, location, body, user_id))
 
             mysql.connection.commit()
 
@@ -345,21 +375,133 @@ def edit_profile():
 
     return render_template('edit_profile.html', form=form)
 
-    
-# Delete Article
+
+@app.route('/delete_biography/<string:id>', methods=['POST'])
+@is_logged_in
+def delete_biography(id):
+   
+    cur = mysql.connection.cursor()
+
+    cur.execute("DELETE FROM biography WHERE id = %s", [id])
+
+    mysql.connection.commit()
+
+    cur.close()
+
+    flash('Biography Deleted', 'success')
+
+    return redirect(url_for('profile'))
+
+@app.route('/delete_user/<string:username>', methods=['POST'])
+@is_logged_in
+def delete_user(username):
+   
+    cur = mysql.connection.cursor()
+
+    cur.execute("DELETE FROM users WHERE username = %s", [username])
+
+    mysql.connection.commit()
+
+    cur.close()
+
+    flash('User Deleted', 'success')
+
+    return redirect(url_for('logout'))
+
+@app.route('/edit_user/<string:username>', methods=['GET', 'POST'])
+def edit_user(username):
+    form = RegisterForm(request.form)
+    cur = mysql.connection.cursor()
+    result2 = cur.execute("SELECT id FROM users WHERE username = %s", [username])
+    user = cur.fetchone()
+    user_id = user['id']    
+    if request.method == 'POST' and form.validate():
+        name = form.name.data
+        email = form.email.data
+        username = form.username.data
+        usertype = form.usertype.data
+        password = sha256_crypt.encrypt(str(form.password.data))
+
+        exists= cur.execute("SELECT * FROM users WHERE username = %s", [username])
+        if exists> 0:
+            error = 'Username is already exists!'
+            return render_template('edit_user.html', error=error,form=form)
+        else:    
+            cur.execute("UPDATE users SET name=%s, email=%s, password=%s,username=%s, usertype=%s WHERE id=%s",(name, email,password,username,usertype, user_id))
+            mysql.connection.commit()
+
+            cur.close()
+
+            flash('Your informations updated.', 'success')
+
+            return redirect(url_for('profile'))
+    return render_template('edit_user.html', form=form)
+
+
+@app.route('/delete_comment/<string:id>', methods=['POST'])
+@is_logged_in
+def delete_comment(id):
+   
+    cur = mysql.connection.cursor()
+
+    cur.execute("DELETE FROM comments WHERE id = %s", [id])
+
+    mysql.connection.commit()
+
+    cur.close()
+
+    flash('Comment Deleted', 'success')
+
+    return redirect(url_for('adverts'))
+
+@app.route('/edit_comment/<string:id>', methods=['GET', 'POST'])
+@is_logged_in
+def edit_comment(id):
+   
+    cur = mysql.connection.cursor()
+
+    result = cur.execute("SELECT * FROM comments WHERE id = %s", [id])
+
+    comment = cur.fetchone()
+    cur.close()
+   
+    form = CommentForm(request.form)
+
+    form.location.data = comment['location']
+    form.body.data = comment['body']
+
+    if request.method == 'POST' and form.validate():
+        location = request.form['location']
+        body = request.form['body']
+
+        cur = mysql.connection.cursor()
+        
+        cur.execute ("UPDATE comments SET location=%s, body=%s WHERE id=%s",(location, body, id))
+        
+        mysql.connection.commit()
+
+        cur.close()
+
+        flash('Comment Updated', 'success')
+
+        return redirect(url_for('adverts'))
+
+    return render_template('edit_comment.html', form=form)
+
+
 @app.route('/delete_advert/<string:id>', methods=['POST'])
 @is_logged_in
 def delete_advert(id):
-    # Create cursor
+   
     cur = mysql.connection.cursor()
 
-    # Execute
+    
     cur.execute("DELETE FROM advert WHERE id = %s", [id])
 
-    # Commit to DB
+  
     mysql.connection.commit()
 
-    #Close connection
+   
     cur.close()
 
     flash('Advert Deleted', 'success')
