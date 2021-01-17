@@ -9,10 +9,10 @@ from functools import wraps
 app = Flask(__name__)
 
 
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'admin'
-app.config['MYSQL_DB'] = 'project'
+app.config['MYSQL_HOST'] = 'eu-cdbr-west-03.cleardb.net'
+app.config['MYSQL_USER'] = 'be727c885c14d0'
+app.config['MYSQL_PASSWORD'] = '13fefb36'
+app.config['MYSQL_DB'] = 'heroku_07fe61904f847c4'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 mysql = MySQL(app)
@@ -89,7 +89,6 @@ def musicians():
 
     result2 = cur.execute("SELECT COUNT(id) AS total FROM users WHERE usertype = %s", ['Musician'])
     total_musician = cur.fetchone()
-
 
     if result > 0:
         return render_template('musicians.html', musicians=musicians, total_musician=total_musician)
