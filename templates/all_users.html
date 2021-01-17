@@ -22,4 +22,20 @@
   {% endfor %}
 </table>
 
+<hr>
+<dt class="mb-2 "> Users Types</dt>
+<table class="table table-striped mt-2 mb-2">
+  <hr>
+  <tr>
+    <th>Count</th>
+    <th>UserType</th>
+  </tr>
+  {% for type in types %}
+    <tr>
+      <td>{{type.total}}</td>
+      <td>{{type.usertype}}</td>
+    </tr>
+  {% endfor %}
+</table>
+
 {% endblock %}

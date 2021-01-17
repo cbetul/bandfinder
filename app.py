@@ -42,6 +42,8 @@ def adverts():
     cur.close()
 
 
+
+
 @app.route('/user/<string:username>/')
 def get_user(username):
   
@@ -514,7 +516,19 @@ def all_users():
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT users.id, users.name, users.usertype, biography.location, biography.instrument FROM biography INNER JOIN users ON biography.user_id=users.id")
     users = cur.fetchall()
-    return render_template('all_users.html',users=users)
+
+    result2 = cur.execute("SELECT COUNT(usertype) as total, usertype FROM users GROUP BY usertype")
+    types = cur.fetchall()
+
+    return render_template('all_users.html',users=users, types=types)
+    cur.close()
+
+@app.route('/all_posts')
+def all_posts():
+    cur = mysql.connection.cursor()
+    result = cur.execute("SELECT * FROM advert UNION SELECT * FROM comments")
+    posts = cur.fetchall()
+    return render_template('all_posts.html',posts=posts)
     cur.close()
 
 @app.route('/all_comments')

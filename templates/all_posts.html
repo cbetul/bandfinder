@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+{% block body %}
+<hr>
+<dt class="mb-2 "> All Posts Table</dt>
+<table class="table table-striped mt-2 mb-2">
+  <hr>
+  <tr>
+    <th>ID</th>
+    <th>Title</th>
+    <th>Author</th>
+    <th>Location</th>
+    <th>Body</th>
+    <th>Date</th>
+    <th>UserID</th>
+  </tr>
+  {% for post in posts %}
+    <tr>
+      <td>{{post.id}}</td>
+      <td>{{post.title}}</td>
+      <td>{{post.author}}</td>
+      <td>{{post.location | safe}}</td>
+      <td>{{post.body | safe}}</td>
+      <td>{{post.create_date}}</td>
+      <td>{{post.user_id}}</td>
+    </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}
