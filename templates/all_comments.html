@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+{% block body %}
+<hr>
+<dt class="mb-2 "> Comments Table</dt>
+<table class="table table-striped mt-2 mb-2">
+  <hr>
+  <tr>
+    <th>ID</th>
+    <th>UserType</th>
+    <th>Location</th>
+  </tr>
+  {% for comment in comments %}
+    <tr>
+      <td>{{comment.id}}</td>
+      <td>{{comment.usertype}}</td>
+      <td>{{comment.location}}</td>
+    </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}

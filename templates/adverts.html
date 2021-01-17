@@ -2,10 +2,11 @@
 
 {% block body %}
   <h1>Adverts</h1>
+  <h4 class="text-muted">Total number of Ads: {{total_ad.total}}</h4>
   <div class="col-md-9 text-right">
     <a class="btn btn-danger" href="/add_advert">Place an Ad</a>
-  </div>
-  <hr>
+  </div><a class="btn btn-default" href="/all_comments">All Comments</a><a class="btn btn-default" href="/all_ads">All Ads</a>
+
   <div class="container">
     <hr>
   {% for advert in adverts %}
@@ -13,6 +14,7 @@
     <ul class="list-group">
       <div class="card-block  ">
         <div class="card-header">
+          
           <h3 class="card-title font-weight-bold text-danger">{{advert.title}} </h3>
           <h5 class="card-subtitle mb-2 text-muted">Written by {{advert.author}} | {{advert.create_date}} </h5>
         </div>

@@ -11,6 +11,10 @@
                         <div class="col-md-6 mb-2">
                           {% for bio in biography %}
                           <hr>
+                          <dt>Name:</dt>
+                          <p>
+                            {{user.name}}
+                          </p>
                             <dt>Location:</dt>
                             <p>
                               {{bio.location}}
@@ -24,6 +28,10 @@
                             <dt>About:</dt>
                             <p>
                               {{bio.body| safe}}
+                            </p>
+                            <dt>Registration Date:</dt>
+                            <p>
+                              {{user.register_date}}
                             </p>
                             {% endfor %}
                         </div>

@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% block body %}
+<hr>
+<dt class="mb-2 "> Users Table</dt>
+<table class="table table-striped mt-2 mb-2">
+  <hr>
+  <tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>UserType</th>
+    <th>Location</th>
+    <th>Instrument</th>
+  </tr>
+  {% for user in users %}
+    <tr>
+      <td>{{user.id}}</td>
+      <td>{{user.name}}</td>
+      <td>{{user.usertype}}</td>
+      <td>{{user.location}}</td>
+      <td>{{user.instrument}}</td>
+    </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}

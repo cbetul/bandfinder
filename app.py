@@ -31,9 +31,10 @@ def adverts():
     cur = mysql.connection.cursor()
     result = cur.execute("SELECT * FROM advert")
     adverts = cur.fetchall()
-
+    result2 = cur.execute("SELECT COUNT(title) AS total FROM advert")
+    total_ad = cur.fetchone()
     if result > 0:
-        return render_template('adverts.html', adverts=adverts)
+        return render_template('adverts.html', adverts=adverts, total_ad=total_ad)
 
     else:
         msg = 'No Advert Found'
@@ -64,9 +65,11 @@ def bands():
 
     result = cur.execute("SELECT * FROM users WHERE usertype = %s", ['Band'])
     bands = cur.fetchall()
+    result2 = cur.execute("SELECT COUNT(id) AS total FROM users WHERE usertype = %s", ['Band'])
+    total_band = cur.fetchone()
 
     if result > 0:
-        return render_template('bands.html', bands=bands)
+        return render_template('bands.html', bands=bands, total_band=total_band)
 
     else:
         msg = 'No Bands Found'
@@ -82,8 +85,12 @@ def musicians():
     result = cur.execute("SELECT * FROM users WHERE usertype = %s", ['Musician'])
     musicians = cur.fetchall()
 
+    result2 = cur.execute("SELECT COUNT(id) AS total FROM users WHERE usertype = %s", ['Musician'])
+    total_musician = cur.fetchone()
+
+
     if result > 0:
-        return render_template('musicians.html', musicians=musicians)
+        return render_template('musicians.html', musicians=musicians, total_musician=total_musician)
 
     else:
         msg = 'No Musician Found'
@@ -100,9 +107,11 @@ def advert(id):
     advert = cur.fetchone()
     result2 = cur.execute("SELECT * FROM comments WHERE advert_id = %s", [id])
     comments = cur.fetchall()
+    result2 = cur.execute("SELECT COUNT(id) AS total FROM comments WHERE advert_id = %s", [id])
+    total_comments = cur.fetchone()
     
     if result2 > 0:
-        return render_template('advert.html', advert=advert, comments=comments)
+        return render_template('advert.html', advert=advert, comments=comments, total_comments=total_comments)
         
     return render_template('advert.html', advert=advert)
 
@@ -207,15 +216,18 @@ def profile():
     cur = mysql.connection.cursor()
 
     result = cur.execute("SELECT * FROM advert WHERE author = %s", [session['username']])
-
     adverts = cur.fetchall()
+
+    result3 = cur.execute("SELECT COUNT(id) AS total FROM advert WHERE author = %s", [session['username']])
+    total_posts = cur.fetchone()
 
     result2 = cur.execute("SELECT * FROM biography WHERE username = %s", [session['username']])
     biography = cur.fetchall()
+    
     if result > 0:
-        return render_template('profile.html', adverts=adverts, biography=biography)
+        return render_template('profile.html', adverts=adverts, biography=biography, total_posts=total_posts)
     else:
-        return render_template('profile.html', biography=biography)
+        return render_template('profile.html', biography=biography, total_posts=total_posts)
   
     cur.close()
 
@@ -408,33 +420,37 @@ def delete_user(username):
 
     return redirect(url_for('logout'))
 
+class EditUserForm(Form):
+
+    name = StringField('Name', [validators.DataRequired(),validators.Length(min=1, max=50)])
+    email = StringField('Email', [validators.DataRequired(),validators.Length(min=5, max=50)])
+    usertype = SelectField(u'User Type', choices=[('Band', 'Band'), ('Musician', 'Musician') ])
+    password = PasswordField('Password', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='Passwords do not match')
+    ])
+    confirm = PasswordField('Confirm Password')
+
 @app.route('/edit_user/<string:username>', methods=['GET', 'POST'])
 def edit_user(username):
-    form = RegisterForm(request.form)
+    form = EditUserForm(request.form)
     cur = mysql.connection.cursor()
     result2 = cur.execute("SELECT id FROM users WHERE username = %s", [username])
     user = cur.fetchone()
     user_id = user['id']    
     if request.method == 'POST' and form.validate():
         name = form.name.data
-        email = form.email.data
-        username = form.username.data
+        email = form.email.data  
         usertype = form.usertype.data
         password = sha256_crypt.encrypt(str(form.password.data))
+        cur.execute("UPDATE users SET name=%s, email=%s, password=%s,username=%s, usertype=%s WHERE id=%s",(name, email,password,username,usertype, user_id))
+        mysql.connection.commit()
 
-        exists= cur.execute("SELECT * FROM users WHERE username = %s", [username])
-        if exists> 0:
-            error = 'Username is already exists!'
-            return render_template('edit_user.html', error=error,form=form)
-        else:    
-            cur.execute("UPDATE users SET name=%s, email=%s, password=%s,username=%s, usertype=%s WHERE id=%s",(name, email,password,username,usertype, user_id))
-            mysql.connection.commit()
+        cur.close()
 
-            cur.close()
+        flash('Your informations updated.', 'success')
 
-            flash('Your informations updated.', 'success')
-
-            return redirect(url_for('profile'))
+        return redirect(url_for('profile'))
     return render_template('edit_user.html', form=form)
 
 
@@ -443,7 +459,10 @@ def edit_user(username):
 def delete_comment(id):
    
     cur = mysql.connection.cursor()
+    result = cur.execute("SELECT * FROM comments WHERE id = %s", [id])
 
+    comment = cur.fetchone()
+    advert_id = comment['advert_id']
     cur.execute("DELETE FROM comments WHERE id = %s", [id])
 
     mysql.connection.commit()
@@ -452,7 +471,7 @@ def delete_comment(id):
 
     flash('Comment Deleted', 'success')
 
-    return redirect(url_for('adverts'))
+    return redirect(url_for('advert', id = advert_id))
 
 @app.route('/edit_comment/<string:id>', methods=['GET', 'POST'])
 @is_logged_in
@@ -463,6 +482,7 @@ def edit_comment(id):
     result = cur.execute("SELECT * FROM comments WHERE id = %s", [id])
 
     comment = cur.fetchone()
+    advert_id = comment['advert_id']
     cur.close()
    
     form = CommentForm(request.form)
@@ -484,10 +504,34 @@ def edit_comment(id):
 
         flash('Comment Updated', 'success')
 
-        return redirect(url_for('adverts'))
+        return redirect(url_for('advert', id = advert_id))
 
     return render_template('edit_comment.html', form=form)
 
+
+@app.route('/all_users')
+def all_users():
+    cur = mysql.connection.cursor()
+    result = cur.execute("SELECT users.id, users.name, users.usertype, biography.location, biography.instrument FROM biography INNER JOIN users ON biography.user_id=users.id")
+    users = cur.fetchall()
+    return render_template('all_users.html',users=users)
+    cur.close()
+
+@app.route('/all_comments')
+def all_comments():
+    cur = mysql.connection.cursor()
+    result = cur.execute("SELECT comments.id, users.usertype, advert.location FROM comments INNER JOIN users ON comments.user_id=users.id INNER JOIN advert ON comments.advert_id=advert.id")
+    comments = cur.fetchall()
+    return render_template('all_comments.html',comments=comments)
+    cur.close()
+
+@app.route('/all_ads')
+def all_ads():
+    cur = mysql.connection.cursor()
+    result = cur.execute("SELECT advert.id, advert.location, users.name, users.usertype FROM advert INNER JOIN users ON advert.user_id=users.id")
+    ads = cur.fetchall()
+    return render_template('all_ads.html',ads=ads)
+    cur.close()
 
 @app.route('/delete_advert/<string:id>', methods=['POST'])
 @is_logged_in

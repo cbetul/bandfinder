@@ -24,9 +24,10 @@
   
   <div class="col-lg-8 order-lg-2">
     <h3>Comments</h3>
+    <h5 class="text-muted">Total number of Comments: {{total_comments.total}}</h5>
     <ul class="list-group">
       {% for comment in comments %}
-      <li class="list-group-item-warning"><h5 class="card-header"><a href="/user/{{comment.author}}"> {{comment.author}} </a>Date:  {{comment.create_date}}</h5></li>
+      <li class="list-group-item-warning"><h5 class="card-header"><a href="/user/{{comment.author}}"> {{comment.author}} </a>Date:  {{comment.create_date}}  | {{comment.location}}</h5></li>
         <li class="list-group-item">{{comment.body |safe}}</li>
         {% if comment.author == session.username %}
           <form action="{{url_for('delete_comment', id=comment.id)}}" method="post">

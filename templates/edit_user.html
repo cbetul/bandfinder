@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-  <h1>Register</h1>
+  <h1>Edit User Informations</h1>
   <div class="col-lg-8 order-lg-2">
   {% from "includes/_formhelpers.html" import render_field %}
   <form method="POST" action="">
@@ -10,9 +10,6 @@
     </div>
     <div class="form-group">
       {{render_field(form.email, class_="form-control")}}
-    </div>
-    <div class="form-group">
-      {{render_field(form.username, class_="form-control")}}
     </div>
     <div class="form-group">
       {{render_field(form.usertype, class_="form-control")}}
@@ -25,6 +22,17 @@
     </div>
 
     <p><input type="submit" class="btn btn-warning" value="Submit"></p>
-  </form>
-</div>
+  </form>    
+
+</div>  
+<div class="col-lg-4 order-lg-1 text-center">
+      <img src="/static/images/loveless.jpg" class="mx-auto img-fluid img-circle d-block" alt="avatar">
+      <h6 class="mt-2">Upload a different photo</h6>
+      <label class="custom-file">
+          <input type="file" id="file" class="custom-file-input">
+          <span class="custom-file-control">Choose file</span>
+          <input type = "submit"/>
+      </label>
+      
+  </div>
 {% endblock %}

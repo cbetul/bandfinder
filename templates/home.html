@@ -1,14 +1,19 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-  <div class="jumbotron text-center">
-    <h1>Band Finder</h1>
-    <p class="lead">This site is the best place on the Internet to find the people you need for your music project or band.</p>
-     <p>Please sign up for sharing posts.</p>
-    {% if session.logged_in == NULL %}
-      <a href="/register" class="btn btn-warning btn-lg">Sign Up</a>
-      <a href="/login" class="btn btn-warning btn-lg">Sign in</a>
-    {% endif %}
-    <a href="/adverts" class="btn btn-danger btn-lg">Latest Ads</a>
-  </div>
+<div class="container text-center">
+  <h1>Band Finder</h1>
+  <hr>
+  <img src="/static/images/theclash2.jpg" alt="Clash">
+  <hr>
+  
+  <p class="lead">This site is the best place on the Internet to find the people you need for your music project or band.</p>
+   <p>Please sign up for sharing posts.</p>
+   <hr>
+  {% if session.logged_in == NULL %}
+    <a href="/register" class="btn btn-warning btn-lg">Sign Up</a>
+    <a href="/login" class="btn btn-warning btn-lg">Sign in</a>
+  {% endif %}
+  <a href="/adverts" class="btn btn-danger btn-lg">Latest Ads</a>
+</div>
 {% endblock %}

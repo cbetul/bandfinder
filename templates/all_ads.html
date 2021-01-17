@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% block body %}
+<hr>
+<dt class="mb-2 "> Adverts Table</dt>
+<table class="table table-striped mt-2 mb-2">
+  <hr>
+  <tr>
+    <th>ID</th>
+    <th>Location</th>
+    <th>Name</th>
+    <th>UserType</th>
+    
+  </tr>
+  {% for ad in ads %}
+    <tr>
+      <td>{{ad.id}}</td>
+      <td>{{ad.location}}</td>
+      <td>{{ad.name}}</td>
+      <td>{{ad.usertype}}</td>
+      
+    </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}
