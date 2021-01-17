@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+<div class="col-lg-8 order-lg-2">
+    <h3>Bands</h3>
+    <hr>
+    <ul class="list-group">
+      {% for band in bands %}
+       <li class="list-group-item-secondary"> <a href="/user/{{band.username}}"><h3>{{band.name}}</h3> </a></li>
+       <hr>
+      {% endfor %}
+    </ul>
+    
+</div>
+
+{% endblock %}
