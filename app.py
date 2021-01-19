@@ -179,7 +179,7 @@ def login():
                 session['username'] = username
 
                 flash('Logged in', 'success')
-                return redirect(url_for('profile'))
+                return render_template('profile.html')
             else:
                 error = 'Please try again.'
                 return render_template('login.html', error=error)
@@ -194,12 +194,12 @@ def login():
 
 def is_logged_in(f):
     @wraps(f)
-    def wrap(*args, **kwargs):
+    def wrap(*args, **kargs):
         if 'logged_in' in session:
-            return f(*args, **kwargs)
+            return f(*args, **kargs)
         else:
             flash('You must login', 'danger')
-            return redirect(url_for('login'))
+            return render_template('login.html')
     return wrap
 
 
@@ -226,9 +226,9 @@ def profile():
     biography = cur.fetchall()
     
     if result > 0:
-        return render_template('profile.html', adverts=adverts, biography=biography, total_posts=total_posts)
+        return render_template('profile.html', adverts=adverts, biography=biography)
     else:
-        return render_template('profile.html', biography=biography, total_posts=total_posts)
+        return render_template('profile.html', biography=biography)
   
     cur.close()
 
@@ -262,7 +262,7 @@ def add_advert():
 
         flash('Advert Published', 'success')
 
-        return redirect(url_for('profile'))
+        return render_template('profile.html')
 
     return render_template('add_advert.html', form=form)
 
