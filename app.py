@@ -160,6 +160,7 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+
     if request.method == 'POST':
      
         username = request.form['username']
@@ -179,7 +180,7 @@ def login():
                 session['username'] = username
 
                 flash('Logged in', 'success')
-                return render_template('profile.html')
+                return redirect(url_for('profile'))
             else:
                 error = 'Please try again.'
                 return render_template('login.html', error=error)
@@ -199,7 +200,7 @@ def is_logged_in(f):
             return f(*args, **kargs)
         else:
             flash('You must login', 'danger')
-            return render_template('login.html')
+            return redirect(url_for('login'))
     return wrap
 
 
@@ -262,7 +263,7 @@ def add_advert():
 
         flash('Advert Published', 'success')
 
-        return render_template('profile.html')
+        return redirect(url_for('profile'))
 
     return render_template('add_advert.html', form=form)
 
