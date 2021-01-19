@@ -565,6 +565,7 @@ def delete_advert(id):
 
     return redirect(url_for('profile'))
 
-if __name__ == '__main__':
-    app.secret_key='secret123'
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.secret_key = 'secret'
+    app.debug = False
+    app.run()
